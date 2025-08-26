@@ -1,22 +1,15 @@
 {
   "expo": {
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#121212",
-        "foregroundImage": "./assets/adaptive-icon.png"
-      }
-    },
-    "extra": {
-      "eas": {
-        "projectId": "local"
-      }
+      "package": "com.fudo.countdown"
     },
     "icon": "./assets/icon.png",
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.fudo.countdown"
     },
     "name": "Compte à rebours",
     "orientation": "portrait",
+    "owner": "lucfudo",
     "plugins": [
       "expo-notifications"
     ],
