@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#121212",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "local"
+      }
+    },
+    "icon": "./assets/icon.png",
+    "ios": {
+      "supportsTablet": true
+    },
+    "name": "Compte à rebours",
+    "orientation": "portrait",
+    "plugins": [
+      "expo-notifications"
+    ],
+    "scheme": "countdown",
+    "slug": "countdown",
+    "splash": {
+      "backgroundColor": "#121212",
+      "image": "./assets/splash.png",
+      "resizeMode": "contain"
+    },
+    "version": "0.1.0"
+  }
+}
