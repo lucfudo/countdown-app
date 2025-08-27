@@ -5,7 +5,10 @@
     },
     "icon": "./assets/icon.png",
     "ios": {
-      "bundleIdentifier": "com.fudo.countdown"
+      "bundleIdentifier": "com.fudo.countdown",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "name": "Compte à rebours",
     "orientation": "portrait",
@@ -20,6 +23,11 @@
       "image": "./assets/splash.png",
       "resizeMode": "contain"
     },
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "extra": {
+      "eas": {
+        "projectId": "3a85f5ba-23b3-4d83-9eb5-b693a855b311"
+      }
+    }
   }
 }

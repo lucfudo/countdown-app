@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { SafeAreaView, View, Text, TextInput, Pressable } from "react-native";
 import { colors } from "@/theme";
 import { Item, CountdownType, Reminder } from "@/types";
 import { newId } from "@/utils/date";
 import { scheduleReminders } from "@/notifications";
 import { load, save } from "@/storage/db";
+import DateField from "@/components/DateField";
 
 export default function EditScreen({
   route,
@@ -82,13 +83,12 @@ export default function EditScreen({
         </View>
 
         <View style={row}>
-          <Text style={{ color: colors.sub, marginBottom: 6 }}>Date</Text>
-          <TextInput
+          <DateField
+            label="Date"
             value={dateISO}
-            onChangeText={setDate}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor="#888"
-            style={{ color: colors.text, fontSize: 16 }}
+            onChange={setDate}
+            // minimumDate={new Date()}        // (option) interdire dates passées
+            // maximumDate={new Date(2035,0,1)} // (option)
           />
         </View>
 
