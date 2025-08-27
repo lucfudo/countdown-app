@@ -63,7 +63,16 @@ export default function HomeScreen({
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={{ padding: 16, paddingBottom: 6 }}>
+      <View
+        style={{
+          padding: 16,
+          paddingBottom: 6,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <View style={{ width: 60 }} />
         <Text
           style={{
             color: colors.text,
@@ -74,6 +83,13 @@ export default function HomeScreen({
         >
           Compte à rebours
         </Text>
+        <Pressable
+          onPress={() => nav("archive")}
+          hitSlop={10}
+          style={{ width: 60, alignItems: "flex-end" }}
+        >
+          <Text style={{ color: colors.accent }}>Archive</Text>
+        </Pressable>
       </View>
 
       <FlatList
