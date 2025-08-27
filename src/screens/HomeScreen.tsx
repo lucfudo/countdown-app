@@ -1,23 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  FlatList,
-  Pressable,
-  Share,
-  Alert,
-} from "react-native";
+import { SafeAreaView, View, Text, FlatList, Pressable } from "react-native";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { colors } from "@/theme";
 import { Item } from "@/types";
 import { load, save } from "@/storage/db";
 import EventCard from "@/components/EventCard";
 import FabMenu from "@/components/FabMenu";
-import { newId } from "@/utils/date";
 import { RouteName } from "@/navigation/routes";
 import { fabMenuActions } from "@/config/menu";
-import { contextualMenu } from "@/config/contextualMenu";
+import {
+  buildActionSheetForItem,
+  contextualMenu,
+} from "@/config/contextualMenu";
 
 export default function HomeScreen({
   nav,
@@ -53,26 +47,19 @@ export default function HomeScreen({
   );
 
   function openMenu(item: Item) {
-    const options = [
-      item.pinned ? "Désépingler" : "Épingler",
-      "Éditer",
-      "Archiver",
-      "Dupliquer",
-      "Partager",
-      "Supprimer",
-      "Annuler",
-    ];
+    const { actions, options, destructiveIndex, cancelIndex } =
+      buildActionSheetForItem(item);
 
     showActionSheetWithOptions(
       {
         options,
-        cancelButtonIndex: 6,
-        destructiveButtonIndex: 5,
+        cancelButtonIndex: cancelIndex,
+        destructiveButtonIndex:
+          destructiveIndex >= 0 ? destructiveIndex : undefined,
       },
       (i) => {
-        if (i == null || i === 6) return;
-        // ⬇️ Passe bien refresh ici
-        contextualMenu[i].handler(item, nav, refresh);
+        if (i == null || i === cancelIndex) return;
+        actions[i].handler(item, nav, refresh);
       }
     );
   }
