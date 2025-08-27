@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SafeAreaView, View, Text, TextInput, Pressable } from "react-native";
 import { colors } from "@/theme";
 import { Item, CountdownType, Reminder } from "@/types";
@@ -14,33 +14,73 @@ export default function EditScreen({
   route: any;
   nav: (r: string, p?: any) => void;
 }) {
-  const type: CountdownType = route?.type ?? "countdown";
+  const editId: string | undefined = route?.id;
+  const isEdit = !!editId;
+
+  const initialType: CountdownType = route?.type ?? "countdown";
+  const [type, setType] = useState<CountdownType>(initialType);
   const [title, setTitle] = useState("");
   const [dateISO, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [recurrence, setRecurrence] = useState<"none" | "yearly">(
-    type === "birthday" ? "yearly" : "none"
+    initialType === "birthday" ? "yearly" : "none"
   );
   const [remJ0, setJ0] = useState(true);
   const [remJ3, setJ3] = useState(true);
+
+  // Hydrate si on édite
+  useEffect(() => {
+    if (!isEdit) return;
+    (async () => {
+      const list = await load();
+      const it = list.find((x) => x.id === editId);
+      if (!it) return;
+      setTitle(it.title);
+      setType(it.type);
+      setDate(it.dateISO);
+      setRecurrence(it.recurrence ?? "none");
+      setJ0(it.reminder?.includes("J0") ?? false);
+      setJ3(it.reminder?.includes("J-3") ?? false);
+    })();
+  }, [isEdit, editId]);
 
   async function saveItem() {
     const reminders: Reminder[] = [];
     if (remJ0) reminders.push("J0");
     if (remJ3) reminders.push("J-3");
 
-    const item: Item = {
-      id: newId(),
-      title,
-      type,
-      dateISO,
-      recurrence,
-      reminder: reminders,
-      createdAt: Date.now(),
-    };
     const list = await load();
-    list.unshift(item);
-    await save(list);
-    await scheduleReminders(item);
+
+    if (isEdit) {
+      const idx = list.findIndex((x) => x.id === editId);
+      if (idx >= 0) {
+        const updated: Item = {
+          ...list[idx],
+          title,
+          type,
+          dateISO,
+          recurrence,
+          reminder: reminders,
+          // on garde createdAt/pinned/archived existants grâce au spread
+        };
+        list[idx] = updated;
+        await save(list);
+        await scheduleReminders(updated);
+      }
+    } else {
+      const item: Item = {
+        id: newId(),
+        title,
+        type,
+        dateISO,
+        recurrence,
+        reminder: reminders,
+        createdAt: Date.now(),
+      };
+      list.unshift(item);
+      await save(list);
+      await scheduleReminders(item);
+    }
+
     nav("home");
   }
 
@@ -62,9 +102,13 @@ export default function EditScreen({
         <Pressable onPress={() => nav("home")}>
           <Text style={{ color: colors.accent }}>Annuler</Text>
         </Pressable>
-        <Text style={{ color: colors.text, fontWeight: "700" }}>Ajouter</Text>
+        <Text style={{ color: colors.text, fontWeight: "700" }}>
+          {isEdit ? "Modifier" : "Ajouter"}
+        </Text>
         <Pressable onPress={saveItem}>
-          <Text style={{ color: colors.accent }}>Suivant</Text>
+          <Text style={{ color: colors.accent }}>
+            {isEdit ? "Enregistrer" : "Suivant"}
+          </Text>
         </Pressable>
       </View>
 
@@ -83,13 +127,7 @@ export default function EditScreen({
         </View>
 
         <View style={row}>
-          <DateField
-            label="Date"
-            value={dateISO}
-            onChange={setDate}
-            // minimumDate={new Date()}        // (option) interdire dates passées
-            // maximumDate={new Date(2035,0,1)} // (option)
-          />
+          <DateField label="Date" value={dateISO} onChange={setDate} />
         </View>
 
         <View style={row}>
@@ -121,9 +159,21 @@ export default function EditScreen({
         <View style={[row, { borderBottomWidth: 0 }]}>
           <Text style={{ color: colors.sub, marginBottom: 6 }}>Type</Text>
           <View style={{ flexDirection: "row", gap: 8 }}>
-            <Chip active={type === "countdown"}>Compte à rebours</Chip>
-            <Chip active={type === "birthday"}>Anniversaire</Chip>
-            <Chip active={type === "event"}>Fête</Chip>
+            <Chip
+              active={type === "countdown"}
+              onPress={() => setType("countdown")}
+            >
+              Compte à rebours
+            </Chip>
+            <Chip
+              active={type === "birthday"}
+              onPress={() => setType("birthday")}
+            >
+              Anniversaire
+            </Chip>
+            <Chip active={type === "event"} onPress={() => setType("event")}>
+              Fête
+            </Chip>
           </View>
         </View>
       </View>
@@ -148,6 +198,7 @@ function Chip({ children, active = false, onPress }: any) {
     </Pressable>
   );
 }
+
 function Toggle({
   label,
   value,
