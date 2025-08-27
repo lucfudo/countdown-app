@@ -1,8 +1,12 @@
-export const TYPE_OPTIONS = [
-  { key: "countdown", label: "Compte à rebours" },
-  { key: "birthday", label: "Anniversaire" },
-  { key: "event", label: "Fête" },
-] as const;
+import type { CountdownType } from "@/types";
+import { TYPE_META } from "@/config/types";
+
+export const TYPE_OPTIONS: { key: CountdownType; label: string }[] = (
+  Object.keys(TYPE_META) as CountdownType[]
+).map((k) => ({
+  key: k,
+  label: TYPE_META[k].label,
+}));
 
 export const RECURRENCE_OPTIONS = [
   { key: "none", label: "Aucun" },

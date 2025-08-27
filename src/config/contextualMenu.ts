@@ -1,4 +1,3 @@
-// src/config/contextualMenu.ts
 import { Item } from "@/types";
 import { RouteName } from "@/navigation/routes";
 import { newId } from "@/utils/date";

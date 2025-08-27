@@ -3,6 +3,7 @@ import { colors } from "@/theme";
 import { RouteName } from "@/navigation/routes";
 import EditForm from "@/components/forms/EditForm";
 import { useEditItem } from "@/hooks/useEditItem";
+import IconBadgePicker from "@/components/IconBadgePicker";
 
 export default function EditScreen({
   route,
@@ -52,6 +53,7 @@ export default function EditScreen({
           </Text>
         </Pressable>
       </View>
+      <IconBadgePicker type={model.type} onSelectType={setType} />
 
       <EditForm
         title={model.title}
