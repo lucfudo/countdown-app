@@ -31,10 +31,14 @@ export default function HomeScreen({
     (async () => setItems(await load()))();
   }, []);
 
-  // persistance
+  async function refresh() {
+    const data = await load();
+    setItems(data);
+  }
+
   useEffect(() => {
-    save(items);
-  }, [items]);
+    refresh(); // charge la liste au mount
+  }, []);
 
   // tri: pinned en haut, puis ancien -> récent (à ajuster si besoin)
   const ordered = useMemo(
@@ -48,62 +52,27 @@ export default function HomeScreen({
     [items]
   );
 
-  function togglePin(target: Item) {
-    setItems((prev) => {
-      const copy = prev.map((x) =>
-        x.id === target.id ? { ...x, pinned: !x.pinned } : x
-      );
-      return copy;
-    });
-  }
-
-  function archiveItem(target: Item) {
-    setItems((prev) =>
-      prev.map((x) => (x.id === target.id ? { ...x, archived: true } : x))
-    );
-  }
-
-  function deleteItem(target: Item) {
-    Alert.alert("Supprimer", `Supprimer « ${target.title} » ?`, [
-      { text: "Annuler", style: "cancel" },
-      {
-        text: "Supprimer",
-        style: "destructive",
-        onPress: () =>
-          setItems((prev) => prev.filter((x) => x.id !== target.id)),
-      },
-    ]);
-  }
-
-  function duplicateItem(target: Item) {
-    const clone: Item = {
-      ...target,
-      id: newId(),
-      createdAt: Date.now(),
-      pinned: false,
-      archived: false,
-    };
-    setItems((prev) => [clone, ...prev]);
-  }
-
-  function shareItem(target: Item) {
-    const text = `📅 ${target.title} — ${target.dateISO}`;
-    Share.share({ message: text });
-  }
-
   function openMenu(item: Item) {
-    const options = contextualMenu.map((a) => a.label).concat("Annuler");
+    const options = [
+      item.pinned ? "Désépingler" : "Épingler",
+      "Éditer",
+      "Archiver",
+      "Dupliquer",
+      "Partager",
+      "Supprimer",
+      "Annuler",
+    ];
+
     showActionSheetWithOptions(
       {
         options,
-        cancelButtonIndex: options.length - 1,
-        destructiveButtonIndex: contextualMenu.findIndex((a) => a.destructive),
+        cancelButtonIndex: 6,
+        destructiveButtonIndex: 5,
       },
       (i) => {
-        if (i != null && i < contextualMenu.length) {
-          contextualMenu[i].handler(item, nav);
-          setItems((prev) => [...prev]); // force refresh
-        }
+        if (i == null || i === 6) return;
+        // ⬇️ Passe bien refresh ici
+        contextualMenu[i].handler(item, nav, refresh);
       }
     );
   }
