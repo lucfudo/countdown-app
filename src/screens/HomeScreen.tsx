@@ -3,15 +3,12 @@ import { SafeAreaView, View, Text, FlatList, Pressable } from "react-native";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { colors } from "@/theme";
 import { Item } from "@/types";
-import { load, save } from "@/storage/db";
+import { load } from "@/storage/db";
 import EventCard from "@/components/EventCard";
 import FabMenu from "@/components/FabMenu";
 import { RouteName } from "@/navigation/routes";
 import { fabMenuActions } from "@/config/menu";
-import {
-  buildActionSheetForItem,
-  contextualMenu,
-} from "@/config/contextualMenu";
+import { buildActionSheetForItem } from "@/config/contextualMenu";
 
 export default function HomeScreen({
   nav,
