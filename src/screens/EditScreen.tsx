@@ -6,13 +6,14 @@ import { newId } from "@/utils/date";
 import { scheduleReminders } from "@/notifications";
 import { load, save } from "@/storage/db";
 import DateField from "@/components/DateField";
+import { RouteName } from "@/navigation/routes";
 
 export default function EditScreen({
   route,
   nav,
 }: {
   route: any;
-  nav: (r: string, p?: any) => void;
+  nav: (r: RouteName, p?: any) => void;
 }) {
   const editId: string | undefined = route?.id;
   const isEdit = !!editId;

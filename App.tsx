@@ -1,24 +1,16 @@
-import React from "react";
 import { View } from "react-native";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
-import HomeScreen from "@/screens/HomeScreen";
-import EditScreen from "@/screens/EditScreen";
+import { routes } from "@/navigation/routes";
+import { useNav } from "@/navigation/nav";
 
-// mini nav sans lib, suffisant pour MVP
 export default function App() {
-  const [route, setRoute] = React.useState<{
-    name: "home" | "edit";
-    params?: any;
-  }>({ name: "home" });
-  const nav = (name: string, params?: any) =>
-    setRoute({ name: name as any, params });
+  const { route, nav } = useNav();
+  const Screen = routes[route.name];
+
   return (
     <ActionSheetProvider>
       <View style={{ flex: 1 }}>
-        {route.name === "home" && <HomeScreen nav={(n, p) => nav(n, p)} />}
-        {route.name === "edit" && (
-          <EditScreen route={route.params} nav={(n, p) => nav(n as any, p)} />
-        )}
+        <Screen route={route.params} nav={nav} />
       </View>
     </ActionSheetProvider>
   );

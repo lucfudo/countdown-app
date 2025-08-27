@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -15,11 +15,14 @@ import { load, save } from "@/storage/db";
 import EventCard from "@/components/EventCard";
 import FabMenu from "@/components/FabMenu";
 import { newId } from "@/utils/date";
+import { RouteName } from "@/navigation/routes";
+import { fabMenuActions } from "@/config/menu";
+import { contextualMenu } from "@/config/contextualMenu";
 
 export default function HomeScreen({
   nav,
 }: {
-  nav: (route: string, params?: any) => void;
+  nav: (route: RouteName, params?: any) => void;
 }) {
   const { showActionSheetWithOptions } = useActionSheet();
   const [items, setItems] = useState<Item[]>([]);
@@ -89,28 +92,18 @@ export default function HomeScreen({
   }
 
   function openMenu(item: Item) {
-    const options = [
-      item.pinned ? "Désépingler" : "Épingler",
-      "Éditer",
-      "Archiver",
-      "Dupliquer",
-      "Partager",
-      "Supprimer",
-      "Annuler",
-    ];
+    const options = contextualMenu.map((a) => a.label).concat("Annuler");
     showActionSheetWithOptions(
       {
         options,
-        cancelButtonIndex: 6,
-        destructiveButtonIndex: 5,
+        cancelButtonIndex: options.length - 1,
+        destructiveButtonIndex: contextualMenu.findIndex((a) => a.destructive),
       },
       (i) => {
-        if (i === 0) togglePin(item);
-        if (i === 1) nav("edit", { id: item.id });
-        if (i === 2) archiveItem(item);
-        if (i === 3) duplicateItem(item);
-        if (i === 4) shareItem(item);
-        if (i === 5) deleteItem(item);
+        if (i != null && i < contextualMenu.length) {
+          contextualMenu[i].handler(item, nav);
+          setItems((prev) => [...prev]); // force refresh
+        }
       }
     );
   }
@@ -151,25 +144,7 @@ export default function HomeScreen({
         }
       />
 
-      <FabMenu
-        actions={[
-          {
-            label: "Fête",
-            icon: "🎉",
-            onPress: () => nav("edit", { type: "event" }),
-          },
-          {
-            label: "Anniversaire",
-            icon: "🎂",
-            onPress: () => nav("edit", { type: "birthday" }),
-          },
-          {
-            label: "Compte à rebours",
-            icon: "⏳",
-            onPress: () => nav("edit", { type: "countdown" }),
-          },
-        ]}
-      />
+      <FabMenu actions={fabMenuActions(nav)} />
     </SafeAreaView>
   );
 }
