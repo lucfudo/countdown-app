@@ -10,4 +10,6 @@ export type Item = {
   recurrence?: "none" | "yearly";
   reminder?: Reminder[]; // ex: ['J0','J-3']
   createdAt: number;
+  pinned?: boolean;
+  archived?: boolean;
 };

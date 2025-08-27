@@ -1,5 +1,6 @@
 import React from "react";
 import { View } from "react-native";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import HomeScreen from "@/screens/HomeScreen";
 import EditScreen from "@/screens/EditScreen";
 
@@ -12,11 +13,13 @@ export default function App() {
   const nav = (name: string, params?: any) =>
     setRoute({ name: name as any, params });
   return (
-    <View style={{ flex: 1 }}>
-      {route.name === "home" && <HomeScreen nav={(n, p) => nav(n, p)} />}
-      {route.name === "edit" && (
-        <EditScreen route={route.params} nav={(n, p) => nav(n as any, p)} />
-      )}
-    </View>
+    <ActionSheetProvider>
+      <View style={{ flex: 1 }}>
+        {route.name === "home" && <HomeScreen nav={(n, p) => nav(n, p)} />}
+        {route.name === "edit" && (
+          <EditScreen route={route.params} nav={(n, p) => nav(n as any, p)} />
+        )}
+      </View>
+    </ActionSheetProvider>
   );
 }
