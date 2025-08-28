@@ -4,3 +4,5 @@
 npx expo prebuild --platform ios
 
 npx expo start
+
+eas build -p ios --profile preview
