@@ -14,6 +14,7 @@ import { load, save } from "@/storage/db";
 import EventCard from "@/components/EventCard";
 import { RouteName } from "@/navigation/routes";
 import { buildActionSheetForItem } from "@/config/contextualMenu";
+import { daysUntil } from "@/utils/date";
 
 export default function ArchiveScreen({
   nav,
@@ -28,11 +29,24 @@ export default function ArchiveScreen({
     refresh();
   }, [refresh]);
 
-  const archived = useMemo(
-    () =>
-      items.filter((i) => i.archived).sort((a, b) => b.createdAt - a.createdAt),
-    [items]
-  );
+  const archived = useMemo(() => {
+    return items
+      .filter((i) => i.archived)
+      .sort((a, b) => {
+        const da = daysUntil(a.dateISO, a.type, a.recurrence ?? "none");
+        const db = daysUntil(b.dateISO, b.type, b.recurrence ?? "none");
+
+        const aPast = da < 0;
+        const bPast = db < 0;
+
+        // les futurs d'abord, triés par jours restants croissant
+        if (!aPast && !bPast) return da - db;
+        // si un seul est passé → il va après
+        if (aPast !== bPast) return aPast ? 1 : -1;
+        // les passés → triés par "jours depuis" croissant (donc plus récent en haut)
+        return da - db;
+      });
+  }, [items]);
 
   function openMenu(item: Item) {
     const { actions, options, destructiveIndex, cancelIndex } =
