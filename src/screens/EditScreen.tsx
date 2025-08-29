@@ -30,8 +30,9 @@ export default function EditScreen({
     setTitle,
     setDate,
     setRecurrence,
-    setJ0,
-    setJ3,
+    remOffsets,
+    addOffset,
+    removeOffset,
     submit,
   } = useEditItem(editId, initialType);
 
@@ -72,10 +73,9 @@ export default function EditScreen({
         setRecurrence={setRecurrence}
         type={model.type}
         setType={setType}
-        remJ0={model.remJ0}
-        setJ0={setJ0}
-        remJ3={model.remJ3}
-        setJ3={setJ3}
+        remOffsets={remOffsets}
+        addOffset={addOffset}
+        removeOffset={removeOffset}
         typeOptions={typeOptions}
       />
     </SafeAreaView>

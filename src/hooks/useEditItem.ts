@@ -1,6 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
-import { CountdownType, Reminder } from "@/types";
-import { getItem, upsertItem, buildReminders } from "@/services/items";
+import { Item, CountdownType, ReminderOffset } from "@/types";
+import {
+  getItem,
+  upsertItem,
+  normalizeOffsets,
+  legacyToOffsets,
+} from "@/services/items";
 
 export function useEditItem(
   editId?: string,
@@ -14,8 +19,9 @@ export function useEditItem(
   const [recurrence, setRecurrence] = useState<"none" | "yearly">(
     initialType === "birthday" ? "yearly" : "none"
   );
-  const [remJ0, setJ0] = useState(true);
-  const [remJ3, setJ3] = useState(true);
+
+  // NEW: offsets dynamiques
+  const [remOffsets, setRemOffsets] = useState<ReminderOffset[]>([0, -3]); // défaut: J0 & J-3
 
   useEffect(() => {
     if (!isEdit) return;
@@ -26,38 +32,52 @@ export function useEditItem(
       setType(it.type);
       setDate(it.dateISO);
       setRecurrence(it.recurrence ?? "none");
-      setJ0(it.reminder?.includes("J0") ?? false);
-      setJ3(it.reminder?.includes("J-3") ?? false);
+      setRemOffsets(
+        normalizeOffsets(it.reminders ?? legacyToOffsets(it.reminder))
+      );
     })();
   }, [isEdit, editId]);
 
   const model = useMemo(
-    () => ({ type, title, dateISO, recurrence, remJ0, remJ3 }),
-    [type, title, dateISO, recurrence, remJ0, remJ3]
+    () => ({ type, title, dateISO, recurrence, remOffsets }),
+    [type, title, dateISO, recurrence, remOffsets]
   );
 
+  function addOffset(n: number) {
+    setRemOffsets((prev) => normalizeOffsets([...prev, Math.trunc(n)]));
+  }
+  function removeOffset(n: number) {
+    setRemOffsets((prev) => prev.filter((x) => x !== n));
+  }
+  function setOffsetAt(index: number, n: number) {
+    setRemOffsets((prev) =>
+      normalizeOffsets(prev.map((x, i) => (i === index ? Math.trunc(n) : x)))
+    );
+  }
+
   async function submit() {
-    const reminder: Reminder[] = buildReminders(remJ0, remJ3);
     await upsertItem({
       id: editId,
       title,
       type,
       dateISO,
       recurrence,
-      reminder,
+      reminders: remOffsets,
     } as any);
   }
 
   return {
     isEdit,
     model,
-    // setters
     setType,
     setTitle,
     setDate,
     setRecurrence,
-    setJ0,
-    setJ3,
+    // reminders API
+    remOffsets,
+    addOffset,
+    removeOffset,
+    setOffsetAt,
     submit,
   };
 }

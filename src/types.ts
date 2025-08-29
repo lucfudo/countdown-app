@@ -1,6 +1,6 @@
 export type CountdownType = string;
 
-export type Reminder = "J0" | "J-1" | "J-3" | "J-7";
+export type ReminderOffset = number;
 
 export type Item = {
   id: string;
@@ -8,7 +8,9 @@ export type Item = {
   type: CountdownType;
   dateISO: string; // 2025-12-31
   recurrence?: "none" | "yearly";
-  reminder?: Reminder[]; // ex: ['J0','J-3']
+  // compat: on garde "reminder?" mais on migre vers "reminders?"
+  reminder?: ("J0" | "J-1" | "J-3" | "J-7")[]; // legacy
+  reminders?: ReminderOffset[]; // nouveau
   createdAt: number;
   pinned?: boolean;
   archived?: boolean;

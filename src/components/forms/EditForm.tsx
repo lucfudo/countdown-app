@@ -2,10 +2,12 @@ import React from "react";
 import { View, Text, TextInput } from "react-native";
 import { colors } from "@/theme";
 import Chip from "@/components/ui/Chip";
-import Toggle from "@/components/ui/Toggle";
+import ReminderWheelPicker from "@/components/forms/ReminderWheelPicker";
+import RecurrenceWheel from "@/components/forms/RecurrenceWheel";
 import DateField from "@/components/DateField";
-import { RECURRENCE_OPTIONS } from "@/config/editOptions";
 import type { CountdownType } from "@/types";
+
+/* ---------- UI helpers ---------- */
 
 export function Section({ children }: { children: React.ReactNode }) {
   return (
@@ -77,6 +79,8 @@ function FilledInput(props: React.ComponentProps<typeof TextInput>) {
   );
 }
 
+/* ---------- EditForm ---------- */
+
 export default function EditForm({
   title,
   setTitle,
@@ -86,11 +90,12 @@ export default function EditForm({
   setRecurrence,
   type,
   setType,
-  remJ0,
-  setJ0,
-  remJ3,
-  setJ3,
-  typeOptions, // 👈 NEW: options dynamiques [{ key, label, icon? }]
+  // NEW reminders (offsets en jours, ex: -3, 0, +1)
+  remOffsets,
+  addOffset,
+  removeOffset,
+  // Types dynamiques
+  typeOptions,
 }: {
   title: string;
   setTitle: (v: string) => void;
@@ -100,10 +105,13 @@ export default function EditForm({
   setRecurrence: (v: "none" | "yearly") => void;
   type: CountdownType;
   setType: (v: CountdownType) => void;
-  remJ0: boolean;
-  setJ0: (v: boolean) => void;
-  remJ3: boolean;
-  setJ3: (v: boolean) => void;
+
+  // ⬇️ nouveaux props pour le sélecteur de rappels
+  remOffsets: number[];
+  addOffset: (n: number) => void;
+  removeOffset: (n: number) => void;
+
+  // ⬇️ types dynamiques
   typeOptions: { key: CountdownType; label: string; icon?: string }[];
 }) {
   const sortedTypes = [...(typeOptions ?? [])].sort((a, b) =>
@@ -117,7 +125,6 @@ export default function EditForm({
         <FieldLabel>Nom</FieldLabel>
         <FilledInput placeholder="Nom" value={title} onChangeText={setTitle} />
       </Row>
-
       {/* Date */}
       <Row>
         <FieldLabel>Date</FieldLabel>
@@ -138,32 +145,36 @@ export default function EditForm({
           />
         </View>
       </Row>
-
-      {/* Rappel */}
       <Row>
         <FieldLabel>Rappel</FieldLabel>
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <Toggle label="Le jour même" value={remJ0} onChange={setJ0} />
-          <Toggle label="3 jours avant" value={remJ3} onChange={setJ3} />
-        </View>
+        <ReminderWheelPicker
+          values={remOffsets}
+          onChange={(next) => {
+            // expose add/remove si tu préfères, mais le plus simple :
+            // set via add/remove existants
+            const current = new Set(remOffsets);
+            // retire ceux absents
+            remOffsets.forEach((o) => {
+              if (!next.includes(o)) removeOffset(o);
+            });
+            // ajoute les nouveaux
+            next.forEach((o) => {
+              if (!current.has(o)) addOffset(o);
+            });
+          }}
+        />
       </Row>
-
-      {/* Récurrence */}
       <Row>
         <FieldLabel>Récurrence</FieldLabel>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-          {RECURRENCE_OPTIONS.map((opt) => (
-            <Chip
-              key={opt.key}
-              active={recurrence === opt.key}
-              onPress={() => setRecurrence(opt.key)}
-            >
-              {opt.label}
-            </Chip>
-          ))}
-        </View>
+        <RecurrenceWheel
+          value={recurrence}
+          onChange={setRecurrence}
+          eventMonthDayText={new Date(dateISO).toLocaleDateString(undefined, {
+            day: "2-digit",
+            month: "short",
+          })}
+        />
       </Row>
-
       {/* Type (dynamique) */}
       <Row last>
         <FieldLabel>Type</FieldLabel>
