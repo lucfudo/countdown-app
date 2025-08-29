@@ -17,9 +17,8 @@ import { RouteName } from "@/navigation/routes";
 import { fabMenuActions } from "@/config/menu";
 import { buildActionSheetForItem } from "@/config/contextualMenu";
 import FilterChips, { Filter } from "@/components/FilterChips";
-
+import { usePrefs } from "@/hooks/usePrefs";
 import { useTypes } from "@/hooks/useTypes";
-import { TypeDef } from "@/types";
 
 export default function HomeScreen({
   nav,
@@ -28,11 +27,33 @@ export default function HomeScreen({
 }) {
   const { showActionSheetWithOptions } = useActionSheet();
   const [items, setItems] = useState<Item[]>([]);
-  const [filter, setFilter] = useState<Filter>("all");
-  const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [showSections, setShowSections] = useState<boolean>(true);
 
   const { types } = useTypes(); // { key, label, icon }
+
+  // 🔧 préférences persistantes
+  const { prefs, setShowFilters, setShowSections, setLastFilter } = usePrefs();
+  const showFilters = prefs.showFilters;
+  const showSections = prefs.showSections;
+
+  // filtre courant (persisté)
+  const [filter, _setFilter] = useState<Filter>(
+    (prefs.lastFilter as Filter) ?? "all"
+  );
+  useEffect(() => {
+    // si prefs changent (premier load), synchroniser l’état local
+    _setFilter((prefs.lastFilter as Filter) ?? "all");
+  }, [prefs.lastFilter]);
+
+  const setFilter = (f: Filter) => {
+    _setFilter(f);
+    setLastFilter(f); // ← persiste
+  };
+
+  useEffect(() => {
+    if (filter !== "all" && !types.some((t) => t.key === filter)) {
+      setFilter("all");
+    }
+  }, [types, filter]);
 
   const sortAscWithPinned = (a: Item, b: Item) =>
     (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || // épinglés en haut
@@ -105,20 +126,23 @@ export default function HomeScreen({
       opts.push(showSections ? "Afficher en liste" : "Afficher par catégorie");
     }
     opts.push("Archivé");
-    opts.push("Gérer les types"); // ← nouveau
+    opts.push("Gérer les types");
     opts.push("Annuler");
 
     const cancelButtonIndex = opts.length - 1;
+
     showActionSheetWithOptions({ options: opts, cancelButtonIndex }, (i) => {
       if (i == null || i === cancelButtonIndex) return;
-      if (i === 0) setShowFilters((v) => !v);
+
+      if (i === 0) setShowFilters(!showFilters);
+
       if (filter === "all") {
-        if (i === 1) setShowSections((v) => !v);
+        if (i === 1) setShowSections(!showSections);
         if (i === 2) nav("archive");
-        if (i === 3) nav("types"); // ← go admin
+        if (i === 3) nav("types");
       } else {
         if (i === 1) nav("archive");
-        if (i === 2) nav("types"); // ← index décalé si pas "all"
+        if (i === 2) nav("types");
       }
     });
   }
