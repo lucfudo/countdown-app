@@ -3,7 +3,7 @@ import { colors } from "@/theme";
 import type { CountdownType, TypeDef } from "@/types";
 
 // 🔁 Pour rester flexible avec des types dynamiques possibles :
-export type Filter = "all" | CountdownType;
+export type Filter = "all" | "untagged" | CountdownType;
 
 export default function FilterChips({
   value,
@@ -18,7 +18,10 @@ export default function FilterChips({
 }) {
   const chips: { key: Filter; label: string; icon?: string }[] = [
     { key: "all", label: "Tout" },
-    ...types.map((t) => ({ key: t.key, label: t.label, icon: t.icon })),
+    ...[...types]
+      .sort((a, b) => a.label.localeCompare(b.label))
+      .map((t) => ({ key: t.key as Filter, label: t.label, icon: t.icon })),
+    { key: "untagged", label: "Sans étiquette", icon: "🏷️" },
   ];
 
   return (

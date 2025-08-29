@@ -50,7 +50,12 @@ export default function HomeScreen({
   };
 
   useEffect(() => {
-    if (filter !== "all" && !types.some((t) => t.key === filter)) {
+    // Ne réinitialise pas quand le filtre est "untagged"
+    if (
+      filter !== "all" &&
+      filter !== "untagged" &&
+      !types.some((t) => t.key === filter)
+    ) {
       setFilter("all");
     }
   }, [types, filter]);
@@ -62,10 +67,18 @@ export default function HomeScreen({
 
   const flatData = useMemo(() => {
     const base = items.filter((i) => !i.archived);
-    const filtered =
-      filter === "all" ? base : base.filter((i) => i.type === filter);
+
+    let filtered: Item[];
+    if (filter === "all") {
+      filtered = base;
+    } else if (filter === "untagged") {
+      filtered = base.filter((i) => !types.some((t) => t.key === i.type));
+    } else {
+      filtered = base.filter((i) => i.type === filter);
+    }
+
     return [...filtered].sort(sortAscWithPinned);
-  }, [items, filter]);
+  }, [items, filter, types]);
 
   async function refresh() {
     setItems(await load());
@@ -76,33 +89,60 @@ export default function HomeScreen({
 
   // sections par type (dyn)
   const sections = useMemo(() => {
-    const src = items.filter((i) => !i.archived);
+    const source = items.filter((i) => !i.archived);
     const byType: Record<string, Item[]> = {};
+
+    // Initialiser chaque type existant
     for (const t of types) byType[t.key] = [];
-    // s'assure que des items "anciens" avec un type supprimé ne disparaissent pas :
-    for (const it of src) {
-      if (!byType[it.type]) byType[it.type] = [];
-      byType[it.type].push(it);
+
+    const untagged: Item[] = [];
+
+    for (const it of source) {
+      if (byType[it.type]) {
+        byType[it.type].push(it);
+      } else {
+        untagged.push(it);
+      }
     }
+
     const normalize = (list: Item[]) => [...list].sort(sortAscWithPinned);
 
     if (filter === "all") {
-      return types
+      const typeSections = [...types]
+        .sort((a, b) => a.label.localeCompare(b.label))
         .map((t) => ({
           key: t.key,
           title: t.label,
           icon: t.icon,
-          data: normalize(byType[t.key] || []),
+          data: normalize(byType[t.key]),
         }))
         .filter((s) => s.data.length > 0);
+
+      if (untagged.length > 0) {
+        typeSections.push({
+          key: "untagged",
+          title: "Sans étiquette",
+          icon: "🏷️",
+          data: normalize(untagged),
+        });
+      }
+      return typeSections;
+    } else if (filter === "untagged") {
+      return [
+        {
+          key: "untagged",
+          title: "Sans étiquette",
+          icon: "🏷️",
+          data: normalize(untagged),
+        },
+      ];
     } else {
-      const t = types.find((x) => x.key === filter);
       return [
         {
           key: filter,
-          title: t?.label ?? filter,
-          icon: t?.icon ?? "🏷️",
-          data: normalize(byType[filter] || []),
+          title: types.find((t) => t.key === filter)?.label ?? filter,
+          icon: types.find((t) => t.key === filter)?.icon ?? "🏷️",
+          data: normalize(byType[filter] ?? []),
         },
       ];
     }
@@ -111,9 +151,21 @@ export default function HomeScreen({
   // counts dyn
   const counts = useMemo(() => {
     const src = items.filter((i) => !i.archived);
-    const c: Record<"all" | string, number> = { all: src.length };
-    for (const t of types) c[t.key] = 0;
-    for (const it of src) c[it.type] = (c[it.type] ?? 0) + 1;
+
+    const c: Record<Filter, number> = {
+      all: src.length,
+      untagged: 0,
+    } as Record<Filter, number>;
+
+    for (const t of types) c[t.key as Filter] = 0;
+
+    for (const it of src) {
+      if (c[it.type as Filter] != null) {
+        c[it.type as Filter] += 1;
+      } else {
+        c.untagged += 1;
+      }
+    }
     return c;
   }, [items, types]);
 
