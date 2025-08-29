@@ -1,10 +1,12 @@
-import { SafeAreaView, View, Text, Pressable } from "react-native";
+import { SafeAreaView } from "react-native";
 import { colors } from "@/theme";
 import { RouteName } from "@/navigation/routes";
 import EditForm from "@/components/forms/EditForm";
 import { useEditItem } from "@/hooks/useEditItem";
 import IconBadgePicker from "@/components/IconBadgePicker";
 import { useTypes } from "@/hooks/useTypes";
+import TopBar from "@/components/ui/TopBar";
+import { Text } from "react-native";
 
 export default function EditScreen({
   route,
@@ -43,25 +45,26 @@ export default function EditScreen({
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View
-        style={{
-          padding: 16,
-          flexDirection: "row",
-          justifyContent: "space-between",
-        }}
-      >
-        <Pressable onPress={() => nav("home")}>
-          <Text style={{ color: colors.accent }}>Annuler</Text>
-        </Pressable>
-        <Text style={{ color: colors.text, fontWeight: "700" }}>
-          {isEdit ? "Modifier" : "Ajouter"}
-        </Text>
-        <Pressable onPress={onSave}>
-          <Text style={{ color: colors.accent }}>
-            {isEdit ? "Enregistrer" : "Suivant"}
+      <TopBar
+        title={isEdit ? "Modifier" : "Ajouter"}
+        left={
+          <Text
+            onPress={() => nav("home")}
+            style={{ color: colors.accent, fontWeight: "600" }}
+          >
+            Annuler
           </Text>
-        </Pressable>
-      </View>
+        }
+        right={
+          <Text
+            onPress={onSave}
+            style={{ color: colors.accent, fontWeight: "600" }}
+          >
+            {isEdit ? "Terminé" : "Suivant"}
+          </Text>
+        }
+      />
+
       <IconBadgePicker type={model.type} onSelectType={setType} types={types} />
 
       <EditForm

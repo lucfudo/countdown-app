@@ -15,6 +15,7 @@ import EventCard from "@/components/EventCard";
 import { RouteName } from "@/navigation/routes";
 import { buildActionSheetForItem } from "@/config/contextualMenu";
 import { daysUntil } from "@/utils/date";
+import TopBar from "@/components/ui/TopBar";
 
 export default function ArchiveScreen({
   nav,
@@ -93,32 +94,30 @@ export default function ArchiveScreen({
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 12,
-          paddingBottom: 6,
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Pressable onPress={() => nav("home")}>
-          <Text style={{ color: colors.accent }}>‹ Retour</Text>
-        </Pressable>
-        <Text
-          style={{
-            color: colors.text,
-            fontSize: 18,
-            fontWeight: "700",
-          }}
-        >
-          Archive
-        </Text>
-        <Pressable onPress={restoreAll}>
-          <Text style={{ color: colors.accent }}>Tout restaurer</Text>
-        </Pressable>
-      </View>
+      <TopBar
+        title="Archive"
+        left={
+          <Text
+            onPress={() => nav("home")}
+            style={{ color: colors.accent, fontWeight: "600" }}
+          >
+            ‹ Retour
+          </Text>
+        }
+        right={
+          archived.length > 0 ? (
+            <Text
+              onPress={restoreAll}
+              style={{ color: colors.accent, fontWeight: "600" }}
+            >
+              Tout restaurer
+            </Text>
+          ) : (
+            // garder l'équilibre visuel quand il n'y a rien à restaurer
+            <Text style={{ color: "transparent" }}>…</Text>
+          )
+        }
+      />
 
       <FlatList
         contentContainerStyle={{ padding: 16, gap: 12 }}
