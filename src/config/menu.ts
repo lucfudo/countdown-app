@@ -1,9 +1,8 @@
-import { TYPE_META } from "@/config/types";
-import type { CountdownType } from "@/types";
+import type { TypeDef } from "@/types";
 
-export const fabMenuActions = (nav: any) =>
-  (Object.keys(TYPE_META) as CountdownType[]).map((t) => ({
-    label: TYPE_META[t].label,
-    icon: TYPE_META[t].icon,
-    onPress: () => nav("edit", { type: t }),
+export const fabMenuActions = (nav: any, types: TypeDef[]) =>
+  types.map((t) => ({
+    label: t.label,
+    icon: t.icon,
+    onPress: () => nav("edit", { type: t.key }),
   }));

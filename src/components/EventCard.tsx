@@ -1,22 +1,20 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { colors } from "@/theme";
 import { Item } from "@/types";
 import { daysUntil } from "@/utils/date";
+import { useTypes } from "@/hooks/useTypes";
 
-// iOS green (si pas dans ton theme)
 const success = "#34C759";
 
-const iconFor = (t: Item["type"]) =>
-  t === "birthday"
-    ? "🎂"
-    : t === "anniversary"
-    ? "💞"
-    : t === "event"
-    ? "🎉"
-    : "⏳";
-
 export default function EventCard({ item }: { item: Item }) {
+  const { types } = useTypes();
+  const meta = useMemo(
+    () => types.find((t) => t.key === item.type),
+    [types, item.type]
+  );
+  const icon = meta?.icon ?? "🏷️";
+
   const d = daysUntil(item.dateISO, item.type, item.recurrence ?? "none", {
     signed: true,
   });
@@ -24,7 +22,6 @@ export default function EventCard({ item }: { item: Item }) {
   const abs = Math.abs(d);
 
   if (item.pinned) {
-    // ——— Style ÉPINGLÉ ———
     return (
       <View
         style={[
@@ -49,17 +46,16 @@ export default function EventCard({ item }: { item: Item }) {
           </View>
         </View>
         <View style={styles.right}>
-          <Text style={styles.icon}>{iconFor(item.type)}</Text>
+          <Text style={styles.icon}>{icon}</Text>
         </View>
       </View>
     );
   }
 
-  // ——— Style NORMAL ———
   return (
     <View style={styles.cardNormal}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <Text style={{ fontSize: 24 }}>{iconFor(item.type)}</Text>
+        <Text style={{ fontSize: 24 }}>{icon}</Text>
         <Text style={styles.title}>{item.title}</Text>
       </View>
       <View style={{ alignItems: "flex-end" }}>

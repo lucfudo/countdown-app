@@ -16,8 +16,10 @@ import FabMenu from "@/components/FabMenu";
 import { RouteName } from "@/navigation/routes";
 import { fabMenuActions } from "@/config/menu";
 import { buildActionSheetForItem } from "@/config/contextualMenu";
-import { TYPE_META } from "@/config/types";
 import FilterChips, { Filter } from "@/components/FilterChips";
+
+import { useTypes } from "@/hooks/useTypes";
+import { TypeDef } from "@/types";
 
 export default function HomeScreen({
   nav,
@@ -29,6 +31,8 @@ export default function HomeScreen({
   const [filter, setFilter] = useState<Filter>("all");
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [showSections, setShowSections] = useState<boolean>(true);
+
+  const { types } = useTypes(); // { key, label, icon }
 
   const sortAscWithPinned = (a: Item, b: Item) =>
     (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || // épinglés en haut
@@ -49,83 +53,72 @@ export default function HomeScreen({
     refresh();
   }, []);
 
-  // sections (par type) avec filtre
+  // sections par type (dyn)
   const sections = useMemo(() => {
-    const source = items.filter((i) => !i.archived);
-
-    const byType: Record<CountdownType, Item[]> = {
-      event: [],
-      birthday: [],
-      countdown: [],
-      anniversary: [],
-    };
-    for (const it of source) byType[it.type].push(it);
-
-    // tri “croissant” par date (puis createdAt)
+    const src = items.filter((i) => !i.archived);
+    const byType: Record<string, Item[]> = {};
+    for (const t of types) byType[t.key] = [];
+    // s'assure que des items "anciens" avec un type supprimé ne disparaissent pas :
+    for (const it of src) {
+      if (!byType[it.type]) byType[it.type] = [];
+      byType[it.type].push(it);
+    }
     const normalize = (list: Item[]) => [...list].sort(sortAscWithPinned);
 
     if (filter === "all") {
-      return (Object.keys(TYPE_META) as CountdownType[])
+      return types
         .map((t) => ({
-          key: t,
-          title: TYPE_META[t].label,
-          icon: TYPE_META[t].icon,
-          data: normalize(byType[t]),
+          key: t.key,
+          title: t.label,
+          icon: t.icon,
+          data: normalize(byType[t.key] || []),
         }))
         .filter((s) => s.data.length > 0);
     } else {
+      const t = types.find((x) => x.key === filter);
       return [
         {
           key: filter,
-          title: TYPE_META[filter].label,
-          icon: TYPE_META[filter].icon,
-          data: normalize(byType[filter]),
+          title: t?.label ?? filter,
+          icon: t?.icon ?? "🏷️",
+          data: normalize(byType[filter] || []),
         },
       ];
     }
-  }, [items, filter]);
+  }, [items, filter, types]);
 
-  // counts of non-archived items per type
+  // counts dyn
   const counts = useMemo(() => {
     const src = items.filter((i) => !i.archived);
-    const c: Record<"all" | CountdownType, number> = {
-      all: src.length,
-      event: 0,
-      birthday: 0,
-      countdown: 0,
-      anniversary: 0,
-    };
-    for (const it of src) c[it.type] += 1;
+    const c: Record<"all" | string, number> = { all: src.length };
+    for (const t of types) c[t.key] = 0;
+    for (const it of src) c[it.type] = (c[it.type] ?? 0) + 1;
     return c;
-  }, [items]);
+  }, [items, types]);
 
-  // menu ⋯ : toggle filtres + archive
+  // menu ⋯ : + “Gérer les types”
   function openTopMenu() {
     const opts: string[] = [
       showFilters ? "Masquer les filtres" : "Afficher les filtres",
     ];
-
-    // 👉 n’ajouter que si filtre = all
     if (filter === "all") {
       opts.push(showSections ? "Afficher en liste" : "Afficher par catégorie");
     }
-
     opts.push("Archivé");
+    opts.push("Gérer les types"); // ← nouveau
     opts.push("Annuler");
 
     const cancelButtonIndex = opts.length - 1;
-
     showActionSheetWithOptions({ options: opts, cancelButtonIndex }, (i) => {
       if (i == null || i === cancelButtonIndex) return;
       if (i === 0) setShowFilters((v) => !v);
-
-      // si filter=all, alors l’option toggle est présente à l’index 1
       if (filter === "all") {
         if (i === 1) setShowSections((v) => !v);
         if (i === 2) nav("archive");
+        if (i === 3) nav("types"); // ← go admin
       } else {
-        // sinon l’archive est directement à l’index 1
         if (i === 1) nav("archive");
+        if (i === 2) nav("types"); // ← index décalé si pas "all"
       }
     });
   }
@@ -182,7 +175,12 @@ export default function HomeScreen({
         </View>
         {/* Filtres (optionnels) */}
         {showFilters && (
-          <FilterChips value={filter} onChange={setFilter} counts={counts} />
+          <FilterChips
+            value={filter}
+            onChange={setFilter}
+            counts={counts}
+            types={types}
+          />
         )}
       </View>
     );
@@ -297,7 +295,7 @@ export default function HomeScreen({
         />
       )}
 
-      <FabMenu actions={fabMenuActions(nav)} />
+      <FabMenu actions={fabMenuActions(nav, types)} />
     </SafeAreaView>
   );
 }

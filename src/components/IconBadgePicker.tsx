@@ -1,33 +1,37 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Alert } from "react-native";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { colors } from "@/theme";
-import type { CountdownType } from "@/types";
-import { TYPE_META } from "@/config/types";
+import type { CountdownType, TypeDef } from "@/types";
 
 export default function IconBadgePicker({
   type,
   onSelectType,
+  types, // 👈 dynamique
   size = 84,
 }: {
   type: CountdownType;
   onSelectType: (t: CountdownType) => void;
+  types: TypeDef[]; // [{ key, label, icon }]
   size?: number;
 }) {
   const { showActionSheetWithOptions } = useActionSheet();
 
+  const current = types.find((t) => t.key === type);
+  const currentIcon = current?.icon ?? "🏷️";
+
   function openPicker() {
-    // 🔥 Dynamique: dérive les types de TYPE_META
-    const entries = Object.keys(TYPE_META) as CountdownType[];
+    if (!types || types.length === 0) {
+      Alert.alert("Aucun type disponible", "Ajoute d’abord un type.");
+      return;
+    }
 
-    const options = entries
-      .map((t) => `${TYPE_META[t].icon}  ${TYPE_META[t].label}`)
-      .concat("Annuler");
-
+    const options = types.map((t) => `${t.icon}  ${t.label}`).concat("Annuler");
     const cancelButtonIndex = options.length - 1;
 
     showActionSheetWithOptions({ options, cancelButtonIndex }, (i) => {
       if (i == null || i === cancelButtonIndex) return;
-      onSelectType(entries[i]);
+      const selected = types[i];
+      if (selected) onSelectType(selected.key);
     });
   }
 
@@ -45,7 +49,7 @@ export default function IconBadgePicker({
           }}
         >
           <Text style={{ fontSize: Math.round(size * 0.5) }}>
-            {TYPE_META[type].icon}
+            {currentIcon}
           </Text>
 
           {/* badge crayon */}

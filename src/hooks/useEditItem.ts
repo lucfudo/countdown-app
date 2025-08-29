@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Item, CountdownType, Reminder } from "@/types";
+import { CountdownType, Reminder } from "@/types";
 import { getItem, upsertItem, buildReminders } from "@/services/items";
 
 export function useEditItem(

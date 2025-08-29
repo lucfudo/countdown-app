@@ -4,6 +4,7 @@ import { RouteName } from "@/navigation/routes";
 import EditForm from "@/components/forms/EditForm";
 import { useEditItem } from "@/hooks/useEditItem";
 import IconBadgePicker from "@/components/IconBadgePicker";
+import { useTypes } from "@/hooks/useTypes";
 
 export default function EditScreen({
   route,
@@ -12,6 +13,8 @@ export default function EditScreen({
   route: any;
   nav: (r: RouteName, p?: any) => void;
 }) {
+  const { types } = useTypes();
+
   const editId: string | undefined = route?.id;
   const initialType = (route?.type ?? "countdown") as any;
 
@@ -53,7 +56,7 @@ export default function EditScreen({
           </Text>
         </Pressable>
       </View>
-      <IconBadgePicker type={model.type} onSelectType={setType} />
+      <IconBadgePicker type={model.type} onSelectType={setType} types={types} />
 
       <EditForm
         title={model.title}

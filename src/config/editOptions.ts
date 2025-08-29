@@ -1,12 +1,14 @@
 import type { CountdownType } from "@/types";
-import { TYPE_META } from "@/config/types";
+import { loadTypes } from "@/storage/types";
 
-export const TYPE_OPTIONS: { key: CountdownType; label: string }[] = (
-  Object.keys(TYPE_META) as CountdownType[]
-).map((k) => ({
-  key: k,
-  label: TYPE_META[k].label,
-}));
+// NOTE: comme c’est consommé par un formulaire,
+// on expose un helper async pour récupérer les options à l’ouverture.
+export async function getTypeOptions(): Promise<
+  { key: CountdownType; label: string }[]
+> {
+  const types = await loadTypes();
+  return types.map((t) => ({ key: t.key, label: t.label }));
+}
 
 export const RECURRENCE_OPTIONS = [
   { key: "none", label: "Aucun" },

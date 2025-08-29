@@ -1,26 +1,24 @@
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { colors } from "@/theme";
-import { TYPE_META } from "@/config/types";
-import type { CountdownType } from "@/types";
+import type { CountdownType, TypeDef } from "@/types";
 
+// 🔁 Pour rester flexible avec des types dynamiques possibles :
 export type Filter = "all" | CountdownType;
 
 export default function FilterChips({
   value,
   onChange,
-  counts, // 👈 new
+  counts,
+  types, // 👈 NOUVEAU
 }: {
   value: Filter;
   onChange: (f: Filter) => void;
   counts?: Partial<Record<Filter, number>>;
+  types: TypeDef[]; // 👈 liste dynamique: [{ key, label, icon }]
 }) {
   const chips: { key: Filter; label: string; icon?: string }[] = [
     { key: "all", label: "Tout" },
-    ...(Object.keys(TYPE_META) as CountdownType[]).map((t) => ({
-      key: t,
-      label: TYPE_META[t].label,
-      icon: TYPE_META[t].icon,
-    })),
+    ...types.map((t) => ({ key: t.key, label: t.label, icon: t.icon })),
   ];
 
   return (
