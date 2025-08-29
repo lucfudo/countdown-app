@@ -13,6 +13,7 @@ import { useTypes } from "@/hooks/useTypes";
 import { TypeDef } from "@/types";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { RouteName } from "@/navigation/routes";
+import EmojiPicker from "rn-emoji-keyboard";
 
 export default function TypesScreen({
   nav,
@@ -21,6 +22,7 @@ export default function TypesScreen({
 }) {
   const { types, addType, updateType, removeType } = useTypes();
 
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [icon, setIcon] = useState("✨");
   const [key, setKey] = useState("");
@@ -147,21 +149,26 @@ export default function TypesScreen({
           Ajoute ou modifie un type. Utilise un emoji comme icône.
         </Text>
         <View style={{ flexDirection: "row", gap: 10 }}>
-          <TextInput
-            placeholder="Emoji"
-            placeholderTextColor={colors.sub}
-            value={icon}
-            onChangeText={setIcon}
+          <Pressable
+            onPress={() => setEmojiOpen(true)}
             style={{
               flexBasis: 70,
               backgroundColor: colors.card,
-              color: colors.text,
-              padding: 12,
               borderRadius: 10,
-              textAlign: "center",
-              fontSize: 20,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 12,
+              borderWidth: 1,
+              borderColor: "#3a3b40",
             }}
-          />
+          >
+            <Text style={{ fontSize: 22 }}>{icon || "✨"}</Text>
+            <Text style={{ color: colors.sub, fontSize: 10, marginTop: 4 }}>
+              Emoji
+            </Text>
+          </Pressable>
+
+          {/* Libellé */}
           <TextInput
             placeholder="Libellé (ex: Fête)"
             placeholderTextColor={colors.sub}
@@ -176,6 +183,27 @@ export default function TypesScreen({
             }}
           />
         </View>
+        {/* Picker Emoji (modal) */}
+        <EmojiPicker
+          open={emojiOpen}
+          onClose={() => setEmojiOpen(false)}
+          onEmojiSelected={(e: { emoji: string }) => {
+            setIcon(e.emoji);
+            setEmojiOpen(false);
+          }}
+          enableSearchBar
+          categoryOrder={[
+            "smileys_emotion",
+            "people_body",
+            "animals_nature",
+            "food_drink",
+            "activities",
+            "travel_places",
+            "objects",
+            "symbols",
+            "flags",
+          ]}
+        />
         {/* si key vide => ajout ; sinon => édition */}
         {key ? (
           <View style={{ flexDirection: "row", gap: 12 }}>
