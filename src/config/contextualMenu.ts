@@ -53,6 +53,7 @@ export const contextualMenu: MenuAction[] = [
   {
     key: "duplicate",
     label: "Dupliquer",
+    visible: (_it, ctx) => ctx === "home",
     handler: async (item, _nav, refresh) => {
       const list = await load();
       const copy: Item = {
