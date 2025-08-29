@@ -14,6 +14,11 @@ export default function EditScreen({
   nav: (r: RouteName, p?: any) => void;
 }) {
   const { types } = useTypes();
+  const typeOptions = types.map((t) => ({
+    key: t.key,
+    label: t.label,
+    icon: t.icon,
+  }));
 
   const editId: string | undefined = route?.id;
   const initialType = (route?.type ?? "countdown") as any;
@@ -71,6 +76,7 @@ export default function EditScreen({
         setJ0={setJ0}
         remJ3={model.remJ3}
         setJ3={setJ3}
+        typeOptions={typeOptions}
       />
     </SafeAreaView>
   );
