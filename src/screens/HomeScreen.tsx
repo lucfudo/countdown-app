@@ -270,8 +270,8 @@ export default function HomeScreen({
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <Pressable
-              onLongPress={() => openItemMenu(item)}
-              onPress={() => nav("edit", { id: item.id })}
+              onLongPress={() => openItemMenu(item)} // garde le menu (avec Edit)
+              onPress={() => nav("detail", { id: item.id })} // 👈 maintenant ouvre le détail
             >
               <EventCard item={item} />
             </Pressable>
@@ -355,8 +355,8 @@ export default function HomeScreen({
           }}
           renderItem={({ item }) => (
             <Pressable
-              onLongPress={() => openItemMenu(item)}
-              onPress={() => nav("edit", { id: item.id })}
+              onLongPress={() => openItemMenu(item)} // garde le menu (avec Edit)
+              onPress={() => nav("detail", { id: item.id })} // 👈 maintenant ouvre le détail
             >
               <EventCard item={item} />
             </Pressable>
